@@ -1,0 +1,20 @@
+{
+    "name": "lynx/apibundle",
+    "description": "Api Bundle Symfony",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Strapp Inc",
+            "email": "dquinones@strappinc.com"
+        }
+    ],
+    "require": {},
+    "autoload" : {
+        "psr-0" : {
+            "Lynx\\ApiBundle" : ""
+        }
+    },
+    "target-dir" : "Lynx/ApiBundle",
+    "repositories" : [{
+    }]
+}
