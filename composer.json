@@ -8,7 +8,12 @@
             "email": "dquinones@strappinc.com"
         }
     ],
-    "require": {},
+    "require": {
+        "jms/serializer-bundle": "^1.1",
+        "nelmio/cors-bundle": "^1.4",
+        "nelmio/api-doc-bundle": "^2.11",
+        "friendsofsymfony/rest-bundle": "^1.7"
+    },
     "autoload" : {
         "psr-0" : {
             "Lynx\\ApiBundle" : ""
