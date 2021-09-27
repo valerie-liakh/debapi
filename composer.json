@@ -12,7 +12,8 @@
         "jms/serializer-bundle": "^1.1",
         "nelmio/cors-bundle": "^1.4",
         "nelmio/api-doc-bundle": "^2.11",
-        "friendsofsymfony/rest-bundle": "^1.7"
+        "friendsofsymfony/rest-bundle": "^1.7",
+        "symfony/framework-bundle": "~2.3|~3.0"
     },
     "autoload" : {
         "psr-0" : {
