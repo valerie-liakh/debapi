@@ -1,1 +1,7 @@
-services:
+parameters:
+  user.api.handler.class:  Lynx\ApiBundle\Handler\UserApiHandler
+  user.api.class:  LynxBundle\Entity\User
+services:  
+  user.api.handler:
+       class:        "%user.api.handler.class%"
+       arguments:    ["@doctrine.orm.entity_manager", "%user.api.class%", "@form.factory"]  

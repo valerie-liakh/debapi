@@ -1,3 +1,8 @@
 lynx_api_homepage:
     path:     /
     defaults: { _controller: LynxApiBundle:Default:index }
+api_v1_user:
+    resource: Api\ApiBundle\Controller\UserApiController
+    type:     rest
+    prefix: /v1/user
+    name_prefix:  api_1_  
