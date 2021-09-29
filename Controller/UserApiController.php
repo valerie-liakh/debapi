@@ -1,5 +1,5 @@
 <?php
-namespace Api\ApiBundle\Controller;
+namespace Lynx\ApiBundle\Controller;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Util\Codes;
 use FOS\RestBundle\Controller\Annotations;
@@ -10,8 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Form\FormTypeInterface;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
-use Api\ApiBundle\Form\UserType;
-use Api\ApiBundle\Exception\InvalidFormException;
+use Lynx\ApiBundle\Form\UserType;
+use Lynx\ApiBundle\Exception\InvalidFormException;
 class UserApiController extends FOSRestController
 {
     public function getUserAction($id)
