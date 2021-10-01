@@ -4,5 +4,5 @@ lynx_api_homepage:
 api_v1_user:
     resource: Lynx\ApiBundle\Controller\UserApiController
     type:     rest
-    prefix: /v1/user
+    prefix: /v1/usuarios
     name_prefix:  api_1_  

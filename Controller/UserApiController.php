@@ -16,10 +16,15 @@ class UserApiController extends FOSRestController
 {
     public function getUserAction($id)
     {
-         if (!($macaddress = $this->container->get('user.api.handler')->getUser($id))) {
+         if (!($data = $this->container->get('user.api.handler')->getUser($id))) {
             throw new NotFoundHttpException(sprintf('The resource \'%s\' was not found.',$id));
             }
-        return $macaddress;
+        return $data;
+    }
+    public function getUsersAction()
+    {
+        $data = $this->container->get('user.api.handler')->getUserAll();
+        return $data;
     }
     public function postUserAction(Request $request)
     {
