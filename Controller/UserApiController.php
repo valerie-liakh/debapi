@@ -23,7 +23,7 @@ class UserApiController extends FOSRestController
     }
     public function getUsersAction()
     {
-        $data = $this->container->get('user.api.handler')->getUserAll();
+        $data = $this->container->get('user.api.handler')->getAllUser();
         return $data;
     }
     public function postUserAction(Request $request)
