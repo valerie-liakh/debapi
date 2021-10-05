@@ -16,7 +16,7 @@ class UserType extends AbstractType {
                         ->add('isActive', ChoiceType::class, array('choices' => array('Desactivado' => '0', 'Activado' => '1'),
                             'label' => 'Estado'))
                         ->add('rol', TextType::class,array('required' => true, 'label' => 'Tipo'))
-        ;
+                ;
     }
     public function configureOptions(OptionsResolver $resolver) {
         $resolver->setDefaults(array(
