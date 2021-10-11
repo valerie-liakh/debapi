@@ -28,7 +28,7 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
     }
     public function authenticateToken(TokenInterface $token, UserProviderInterface $userProvider, $providerKey)
     {
-        if (!$userProvider instanceof ApiKeyUserProvider) {
+        if (!$userProvider instanceof ApiKeyUserProvider ) {
             throw new \InvalidArgumentException(
                 sprintf(
                     'The user provider must be an instance of ApiKeyUserProvider (%s was given).',

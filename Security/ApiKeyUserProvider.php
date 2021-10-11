@@ -1,11 +1,15 @@
 <?php
 namespace Lynx\ApiBundle\Security;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
+use Doctrine\ORM\EntityManager;
 class ApiKeyUserProvider implements UserProviderInterface
 {
+    protected $em;
+    public function __construct(EntityManager $entityManager){
+            $this->em = $entityManager;
+}
     public function getUsernameForApiKey($apiKey)
     {
         $username = "admin";
@@ -13,11 +17,8 @@ class ApiKeyUserProvider implements UserProviderInterface
     }
     public function loadUserByUsername($username)
     {
-        return new User(
-            $username,
-            null,
-            array('ROLE_API')
-        );
+        $entity = $this->em->getRepository('LynxBundle:User')->find(4);
+        return $entity;
     }
     public function refreshUser(UserInterface $user)
     {
