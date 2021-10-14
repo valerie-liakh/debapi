@@ -12,13 +12,14 @@ class ApiKeyUserProvider implements UserProviderInterface
 }
     public function getUsernameForApiKey($apiKey)
     {
-        $username = "admin";
+         $user = $this->em->getRepository('LynxBundle:User')->findByToken($apiKey);
+         $username = $user[0]->getUsername();
         return $username;
     }
     public function loadUserByUsername($username)
     {
-        $entity = $this->em->getRepository('LynxBundle:User')->find(4);
-        return $entity;
+        $user = $this->em->getRepository('LynxBundle:User')->findByUsername($username);
+        return $user;
     }
     public function refreshUser(UserInterface $user)
     {

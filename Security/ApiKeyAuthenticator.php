@@ -45,10 +45,10 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
         }
         $user = $userProvider->loadUserByUsername($username);
         return new PreAuthenticatedToken(
-            $user,
+            $user[0],
             $apiKey,
             $providerKey,
-            $user->getRoles()
+            $user[0]->getRoles()
         );
     }
 }
