@@ -13,6 +13,9 @@ class ApiKeyUserProvider implements UserProviderInterface
     public function getUsernameForApiKey($apiKey)
     {
          $user = $this->em->getRepository('LynxBundle:User')->findByToken($apiKey);
+         if (!$user) {
+            throw new BadCredentialsException();
+        }
          $username = $user[0]->getUsername();
         return $username;
     }
