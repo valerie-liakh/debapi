@@ -1,10 +1,11 @@
 parameters:
-  user.api.handler.class:  Lynx\ApiBundle\Handler\UserApiHandler
+  api.handler.class:  Lynx\ApiBundle\Handler\ApiHandler
   user.api.class:  LynxBundle\Entity\User
+  user.api.type: Lynx\ApiBundle\Form\UserType
 services:  
   user.api.handler:
-       class:        "%user.api.handler.class%"
-       arguments:    ["@doctrine.orm.entity_manager", "%user.api.class%", "@form.factory"]  
+       class:        "%api.handler.class%"
+       arguments:    ["@doctrine.orm.entity_manager", "%user.api.class%", "@form.factory", "%user.api.type%"]  
   api_key_user_provider:
        class: Lynx\ApiBundle\Security\ApiKeyUserProvider  
        arguments:    ["@doctrine.orm.entity_manager"]  
