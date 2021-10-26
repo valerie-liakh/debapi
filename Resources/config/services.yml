@@ -11,4 +11,13 @@ services:
        arguments:    ["@doctrine.orm.entity_manager"]  
   apikey_authenticator:
         class: Lynx\ApiBundle\Security\ApiKeyAuthenticator
-        public: false     
+        public: false  
+  api.respuestas:
+      class:        Lynx\ApiBundle\Services\RespuestasStandar
+      arguments:    ["%user.api.class%"]
+  query_builder:
+    class: Lynx\ApiBundle\Services\QueryBuilder
+    arguments: ["@procesador_querystring", "@database_connection", "@validator"]
+  procesador_querystring:
+    class: Lynx\ApiBundle\Services\ProcesadorQuerystring
+    arguments: ["@request_stack", "@validator"]
