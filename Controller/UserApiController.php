@@ -17,23 +17,12 @@ class UserApiController extends FOSRestController {
         if (!($data = $this->container->get('user.api.handler')->get($id))) {
             throw new NotFoundHttpException(sprintf('The resource \'%s\' was not found.', $id));
         }
-        $qb = $this->container->get('query_builder');
-        $procesador = $qb->getProcesador();
-        $qb->setCampos(['name', 'username']);
-        $procesador->setCamposConsultables(['name']);
-        $procesador->setCamposOrdenables(['name', 'username']);
-        $resultado = $qb->crearQuery();
-        if (!$resultado){
-             throw new NotFoundHttpException(sprintf('The resource \'%s\' was not found.', $id));
-        }
-        if ($resultado->getTotalRegistros() == 0){
-            throw new NotFoundHttpException(sprintf('The resource \'%s\' was not found.', $id));
-        }
         $datos = $this->container->get('api.respuestas')->Contenido($data, 10, 2);
         return $datos;
     }
     public function getUsersAction() {
-        $data = $this->container->get('user.api.handler')->getAll();
+        $camposOrdenables = array('id','username','name','is_active','datetime_last_conection');
+        $data = $this->container->get('user.api.handler')->getAll($camposOrdenables);
         return $this->container->get('api.respuestas')->Contenido($data, 10, 2);
     }
     public function postUserAction(Request $request) {

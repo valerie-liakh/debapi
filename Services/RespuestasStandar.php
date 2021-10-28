@@ -1,20 +1,10 @@
 <?php
 use Symfony\Component\HttpFoundation\JsonResponse;
 namespace Lynx\ApiBundle\Services;
-class RespuestasStandar {
-    private $om;
-    private $entityClass;
-    private $repository;
-    public function __construct($entityClass) {
-        $this->entityClass = $entityClass;
-    }
-     public function CamposRetornados($user)
+class RespuestasCabecera {
+    public function EjecucionNoPermitida($errores)
     {
-        $datos = [];
-        $datos[] = $user->getName();
-        $datos[] = $user->getUsername();
-        $datos[] = $user->getEmail();
-        return $datos;
+        return array('error' => $errores,'cod' => 405);
     }
     public function Contenido($contenido, $totalRegistros=0, $numeroPaginas=0)
     {

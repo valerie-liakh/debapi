@@ -5,7 +5,7 @@ parameters:
 services:  
   user.api.handler:
        class:        "%api.handler.class%"
-       arguments:    ["@doctrine.orm.entity_manager", "%user.api.class%", "@form.factory", "%user.api.type%"]  
+       arguments:    ["@doctrine.orm.entity_manager", "%user.api.class%", "@form.factory", "%user.api.type%", "@query_builder", "@api.respuestas"]  
   api_key_user_provider:
        class: Lynx\ApiBundle\Security\ApiKeyUserProvider  
        arguments:    ["@doctrine.orm.entity_manager"]  
@@ -13,8 +13,7 @@ services:
         class: Lynx\ApiBundle\Security\ApiKeyAuthenticator
         public: false  
   api.respuestas:
-      class:        Lynx\ApiBundle\Services\RespuestasStandar
-      arguments:    ["%user.api.class%"]
+      class:        Lynx\ApiBundle\Services\RespuestasCabecera
   query_builder:
     class: Lynx\ApiBundle\Services\QueryBuilder
     arguments: ["@procesador_querystring", "@database_connection", "@validator"]
