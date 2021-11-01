@@ -6,11 +6,12 @@ class RespuestasCabecera {
     {
         return array('error' => $errores,'cod' => 405);
     }
-    public function Contenido($contenido, $totalRegistros=0, $numeroPaginas=0)
+    public function Contenido($contenido, $totalRegistros=0, $numeroPaginas=0, $paginaActual=1)
     {
         return array('data' => $contenido, 
-                'X-Total-Count' => $totalRegistros,
-                'X-Numero-Paginas' => $numeroPaginas,
+                'totalCount' => $totalRegistros,
+                'numeroPaginas' => $numeroPaginas,
+                'paginaActual' => intval($paginaActual)
             );
     }
 }

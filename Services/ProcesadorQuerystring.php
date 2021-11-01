@@ -12,7 +12,7 @@ class ProcesadorQuerystring {
     private $validator;
     private $generales = [];
     private $excepciones = ['sort', 'q', 'fields', 'contarInmuebles', 'page', 'per_page', '_format'];
-    private $registroPorPaginaPermitidos = [10, 15, 20, 25, 30, 35, 40, 45, 50];
+    private $registroPorPaginaPermitidos = [1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
     private $usarGenerales = true;
     function __construct(RequestStack $request, $validator) {
         $this->request = $request->getCurrentRequest();
@@ -66,18 +66,41 @@ class ProcesadorQuerystring {
             if (in_array($campo[0], $this->camposOrdenables)) {
                 $this->orden[$campo[0]] = 'ASC';
                 if (count($campo) > 1)
-                    $this->orden[$campo[0]] = 'DESC';
+                    $this->orden[$campo[0]] = $campo[1];
             } else{
                 $this->errores[] = 'El valor ' . $campo[0] . ' no puede ser utilizado para ordenar la consulta';
             }
         }
     }
-    public function setUsarGenerales($usarGenerales) {
-        $this->usarGenerales = $usarGenerales;
+    private $pagina = 1;
+    public function getPagina() {
+        return $this->pagina;
+    }
+    private $registrosPorPagina = 10;
+    public function getRegistrosPorPagina() {
+        return $this->registrosPorPagina;
+    }
+    function procesarNumeroPagina($pagina) {
+        if (is_numeric($pagina))
+            $this->pagina = $pagina;
+        else
+            $this->errores[] = "El parametro page debe ser un entero";
+    }
+    function procesarRegistrosPorPagina($numeroRegistros) {
+        if (is_numeric($numeroRegistros) & in_array($numeroRegistros, $this->registroPorPaginaPermitidos))
+            $this->registrosPorPagina = $numeroRegistros;
+        else
+            $this->errores[] = 'El parametro per_page debe ser un entero y corresponder con alguno de los siguientes valores [' . implode(', ', $this->registroPorPaginaPermitidos) . ']';
     }
     private $errores = [];
     public function getErrores() {
         return $this->errores;
+    }
+    public function getOrden() {
+        return $this->orden;
+    }
+    public function setUsarGenerales($usarGenerales) {
+        $this->usarGenerales = $usarGenerales;
     }
     private $camposSeleccionables = [];
     public function setCamposSeleccionables($camposSeleccionables) {
@@ -100,9 +123,6 @@ class ProcesadorQuerystring {
         return $this->busqueda;
     }
     private $orden = [];
-    public function getOrden() {
-        return $this->orden;
-    }
     private $seleccion = [];
     public function getSeleccion() {
         return $this->seleccion;
@@ -118,14 +138,6 @@ class ProcesadorQuerystring {
                     $this->errores[] = "$parametro no es un nombre válido de parametro o filtro";
             }
         }
-    }
-    private $pagina = 1;
-    public function getPagina() {
-        return $this->pagina;
-    }
-    private $registrosPorPagina = 10;
-    public function getRegistrosPorPagina() {
-        return $this->registrosPorPagina;
     }
     function procesarSeleccion($campos) {
         foreach (explode(',', $campos) as $campo)
@@ -178,19 +190,7 @@ class ProcesadorQuerystring {
                 'valor' => $valor
             ];
     }
-    function procesarNumeroPagina($pagina) {
-        if (is_numeric($pagina))
-            $this->pagina = $pagina;
-        else
-            $this->errores[] = "El parametro page debe ser un entero";
-    }
-    function procesarRegistrosPorPagina($numeroRegistros) {
-        if (is_numeric($numeroRegistros) & in_array($numeroRegistros, $this->registroPorPaginaPermitidos))
-            $this->registrosPorPagina = $numeroRegistros;
-        else
-            $this->errores[] = 'El parametro per_page debe ser un entero y corresponder con alguno de los siguientes valores [' . implode(', ', $this->registroPorPaginaPermitidos) . ']';
-    }
-    function validarCampo($campo, $valor, $clave = '') {
+        function validarCampo($campo, $valor, $clave = '') {
         if ($clave == '')
             $clave = $campo;
         $validacion = new Collection([

@@ -1,11 +1,12 @@
 <?php
 namespace Lynx\ApiBundle\Services;
+use Doctrine\Common\Persistence\ObjectManager;
+use StringTemplate;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Lynx\ApiBundle\Components\ApiResult;
+use Symfony\Component\Validator\Constraints\Collection;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\Statement;
-use Inmobilia\APIBundle\Components\ApiResult;
-use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
-use StringTemplate;
-use Symfony\Component\Validator\Constraints\Collection;
 class QueryBuilder
 {
     private $connection;
@@ -13,12 +14,15 @@ class QueryBuilder
     private $condicionales = [];
     private $validator;
     private $numeroPaginas=0;
+    private $nomEntidad = 'ent';
     private $campos = [];
-    function __construct(ProcesadorQuerystring $procesador, Connection $connection, $validator)
+    private $manager;
+    function __construct(ProcesadorQuerystring $procesador, Connection $connection, $validator, ObjectManager $om)
     {
         $this->procesador = $procesador;
         $this->connection = $connection;
         $this->validator = $validator;
+        $this->manager = $om;
     }
     private $errores = [];
     public function getErrores()
@@ -45,51 +49,29 @@ class QueryBuilder
                 $campos = 'ent';
                 $engine = new StringTemplate\Engine(':', '');
                 $condicional = $this->procesarCondicional();
-                echo $condicional;
                 $orden = $this->procesarOrden();
-                exit();
-                $sqlCount = 'SELECT COUNT(*) FROM ('.$engine->render(
+                $sql = $engine->render(
                     $this->template,
                     [
-                        'distinct' => ($this->distinct & !$this->procesador->conConteo()) ? 'DISTINCT' : '',
+                        'distinct' => 'DISTINCT',
                         'campos' => $campos,
-                        'tabla' => $this->tabla,
+                        'tabla' => $this->entidad.' '.$this->nomEntidad,
                         'condicionales' => $condicional,
                         'agrupacion' => $agrupacion,
                         'orden' => $orden,
                         'limites' => ''
                     ]
-                ).') T1';
+                );
                 if($this->condicionalForzado!= null)
-                    $sqlCount = str_replace('WHERE', 'WHERE '.$this->condicionalForzado.' AND ',$sqlCount);
-                $stmt = $this->connection->prepare($sqlCount);
-                $stmt = $this->asociarValores($stmt);
-                $stmt->execute();
-                $total = $stmt->fetchColumn();
-                $limite = $this->procesarPaginado($total);
-                if($limite) {
-                    $sql = $engine->render(
-                        $this->template,
-                        [
-                            'distinct' => ($this->distinct) ? 'DISTINCT' : '',
-                            'campos' => $campos,
-                            'tabla' => $this->tabla,
-                            'condicionales' => $condicional,
-                            'agrupacion' => $agrupacion,
-                            'orden' => $orden,
-                            'limites' => $limite
-                        ]
-                    );
-                    if($this->condicionalForzado!= null)
-                        $sql = str_replace('WHERE', 'WHERE '.$this->condicionalForzado.' AND ',$sql);
-                    $stmt = $this->connection->prepare($sql);
-                    $stmt = $this->asociarValores($stmt);
-                    $stmt->execute();
-                }
-                else
-                    return false;
+                    $sqlCount = str_replace('WHERE', 'WHERE '.$this->condicionalForzado.' AND ',$sql);
+                $query = $this->manager->createQuery($sql)
+                        ->setFirstResult($this->procesador->getRegistrosPorPagina() * ($this->procesador->getPagina() - 1))
+                        ->setMaxResults($this->procesador->getRegistrosPorPagina());
+                $resultsCount = new Paginator($query, $fetchJoinCollection = true);
+                $results = $query->getArrayResult();
+                $totalItems = $resultsCount->count();
+                $this->procesarPaginado($totalItems);
             } else {
-                echo "aqui";
                 $this->errores = array_merge($this->errores, $this->procesador->getErrores());
                 return false;
             }
@@ -97,10 +79,33 @@ class QueryBuilder
         else
             return false;
         $result = new ApiResult();
-        $result->setTotalRegistros($total);
-        $result->setRegistros($stmt->fetchAll());
+        $result->setTotalRegistros($totalItems);
+        $result->setRegistros($results);
         $result->setNumeroPaginas($this->numeroPaginas);
+        $result->setPaginaActual($this->procesador->getPagina());
         return $result;
+    }
+    function procesarPaginado($totalRegistros){
+        $pagina = $this->procesador->getPagina();
+        $registrosPorPagina = $this->procesador->getRegistrosPorPagina();
+        $numeroPaginas = ceil($totalRegistros / $registrosPorPagina);
+        if($pagina > $numeroPaginas) {
+            $this->errores[] = "El número de página proporcionado, excede la cantidad de páginas del conjunto de restultados";
+            return false;
+        }
+        $this->numeroPaginas = $numeroPaginas;
+    }
+    function procesarOrden()
+    {
+        $orden = '';
+        foreach($this->procesador->getOrden() as $campo => $direccion)
+        {
+            $orden .= $this->nomEntidad.".$campo $direccion, ";
+        }
+        if($orden!=''){
+            $orden = ' ORDER BY '.substr($orden,0,-2);
+        }
+        return $orden;
     }
     public function setCampos($campos)
     {
@@ -117,18 +122,6 @@ class QueryBuilder
     public function setCondicionalForzado($condicionalForzado)
     {
         $this->condicionalForzado = $condicionalForzado;
-    }
-    function procesarPaginado($totalRegistros){
-        $pagina = $this->procesador->getPagina();
-        $registrosPorPagina = $this->procesador->getRegistrosPorPagina();
-        $numeroPaginas = ceil($totalRegistros / $registrosPorPagina);
-        if($pagina > $numeroPaginas) {
-            $this->errores[] = "El numero de página proporcionado, exece la cantidad de paginas del conjunto de restultados";
-            return false;
-        }
-        $this->numeroPaginas = $numeroPaginas;
-        $inicio = ($pagina-1) * $registrosPorPagina;
-        return "LIMIT $inicio, $registrosPorPagina";
     }
     function procesarCondicional()
     {
@@ -182,17 +175,6 @@ class QueryBuilder
         if($condicional!='')
             $condicional = "WHERE $condicional";
         return $condicional;
-    }
-    function procesarOrden()
-    {
-        $orden = '';
-        foreach($this->procesador->getOrden() as $campo => $direccion)
-        {
-            $orden .= "$campo $direccion, ";
-        }
-        if($orden!='')
-            $orden = ' ORDER BY '.substr($orden,0,-2);
-        return $orden;
     }
     function asociarValores(Statement $stmt){
         foreach($this->procesador->getFiltros() as $campo => $valor)

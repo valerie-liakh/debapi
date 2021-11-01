@@ -13,7 +13,6 @@ class ApiHandler implements ApiHandlerInterface {
     private $typeClass;
     private $queryConstructor;
     private $respuesta;
-    private $camposOrdenables = [];
     public function __construct(ObjectManager $om, $entityClass, FormFactoryInterface $formFactory, $typeClass, $queryConstructor, $respuesta) {
         $this->om = $om;
         $this->entityClass = $entityClass;
@@ -34,8 +33,8 @@ class ApiHandler implements ApiHandlerInterface {
         if(!$resultado)
             return $this->respuesta->EjecucionNoPermitida($this->queryConstructor->getErrores());
         if($resultado->getTotalRegistros()==0)
-            return "hola dos";
-        return $this->repository->findAll();
+          throw new NotFoundHttpException('Registros no encontrados', 404);
+        return $resultado;
     }
     public function post(array $parameters) {
         $page = new $this->entityClass();

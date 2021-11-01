@@ -16,7 +16,7 @@ services:
       class:        Lynx\ApiBundle\Services\RespuestasCabecera
   query_builder:
     class: Lynx\ApiBundle\Services\QueryBuilder
-    arguments: ["@procesador_querystring", "@database_connection", "@validator"]
+    arguments: ["@procesador_querystring", "@database_connection", "@validator", "@doctrine.orm.entity_manager"]
   procesador_querystring:
     class: Lynx\ApiBundle\Services\ProcesadorQuerystring
     arguments: ["@request_stack", "@validator"]
