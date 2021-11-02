@@ -25,14 +25,15 @@ class ApiHandler implements ApiHandlerInterface {
     public function get($id) {
         return $this->repository->find($id);
     }
-    public function getAll($camposOrdenables) {
+    public function getAll($camposOrdenables, $camposSeleccionables) {
         $procesador = $this->queryConstructor->getProcesador();
         $this->queryConstructor->setEntidad($this->entityClass);
         $procesador->setCamposOrdenables($camposOrdenables);
+        $procesador->setCamposSeleccionables($camposSeleccionables);
         $resultado = $this->queryConstructor->crearQuery();
         if(!$resultado)
             return $this->respuesta->EjecucionNoPermitida($this->queryConstructor->getErrores());
-        if($resultado->getTotalRegistros()==0)
+        if($resultado->getTotalRegistros()==0 && count($this->queryConstructor->getErrores())==0 )
           throw new NotFoundHttpException('Registros no encontrados', 404);
         return $resultado;
     }

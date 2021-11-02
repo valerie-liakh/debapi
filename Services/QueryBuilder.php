@@ -7,77 +7,92 @@ use Lynx\ApiBundle\Components\ApiResult;
 use Symfony\Component\Validator\Constraints\Collection;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\Statement;
-class QueryBuilder
-{
+class QueryBuilder {
     private $connection;
     private $template = "SELECT :distinct :campos FROM :tabla :condicionales :agrupacion :orden :limites";
     private $condicionales = [];
     private $validator;
-    private $numeroPaginas=0;
+    private $numeroPaginas = 0;
     private $nomEntidad = 'ent';
     private $campos = [];
     private $manager;
-    function __construct(ProcesadorQuerystring $procesador, Connection $connection, $validator, ObjectManager $om)
-    {
+    function __construct(ProcesadorQuerystring $procesador, Connection $connection, $validator, ObjectManager $om) {
         $this->procesador = $procesador;
         $this->connection = $connection;
         $this->validator = $validator;
         $this->manager = $om;
     }
     private $errores = [];
-    public function getErrores()
-    {
+    public function getErrores() {
         return $this->errores;
     }
-    public function getProcesador()
-    {
+    public function getProcesador() {
         return $this->procesador;
     }
     private $entidad;
-    public function setEntidad($entidad)
-    {
+    public function setEntidad($entidad) {
         $this->entidad = $entidad;
     }
-    public function crearQuery()
-    {
+    public function crearQuery() {
         $stmt = "";
-        if(count($this->errores)==0) {
+        if (count($this->errores) == 0) {
             if ($this->procesador->ejecutar()) {
                 $agrupacion = '';
                 $campos = $this->procesador->getSeleccion();
-                $campos = implode(',', (count($campos) > 0) ? $campos : $this->campos);
-                $campos = 'ent';
+                if (count($campos) > 0) {
+                    foreach ($campos as $key => $value) {
+                        $campos[$key] = $this->nomEntidad . '.' . $value;
+                    }
+                    $campos = implode(', ', (count($campos) > 0) ? $campos : $this->campos);
+                } else {
+                    $campos = $this->nomEntidad;
+                }
                 $engine = new StringTemplate\Engine(':', '');
                 $condicional = $this->procesarCondicional();
                 $orden = $this->procesarOrden();
-                $sql = $engine->render(
-                    $this->template,
-                    [
-                        'distinct' => 'DISTINCT',
-                        'campos' => $campos,
-                        'tabla' => $this->entidad.' '.$this->nomEntidad,
-                        'condicionales' => $condicional,
-                        'agrupacion' => $agrupacion,
-                        'orden' => $orden,
-                        'limites' => ''
-                    ]
+                $sqlCount = $engine->render(
+                        $this->template, [
+                    'distinct' => 'DISTINCT',
+                    'campos' => $this->nomEntidad,
+                    'tabla' => $this->entidad . ' ' . $this->nomEntidad,
+                    'condicionales' => $condicional,
+                    'agrupacion' => $agrupacion,
+                    'orden' => $orden,
+                    'limites' => ''
+                        ]
                 );
-                if($this->condicionalForzado!= null)
-                    $sqlCount = str_replace('WHERE', 'WHERE '.$this->condicionalForzado.' AND ',$sql);
-                $query = $this->manager->createQuery($sql)
+                   $sqlConCampos = $engine->render(
+                        $this->template, [
+                    'distinct' => 'DISTINCT',
+                    'campos' => $campos,
+                    'tabla' => $this->entidad . ' ' . $this->nomEntidad,
+                    'condicionales' => $condicional,
+                    'agrupacion' => $agrupacion,
+                    'orden' => $orden,
+                    'limites' => ''
+                        ]
+                );
+                if ($this->condicionalForzado != null)
+                    $sqlCount = str_replace('WHERE', 'WHERE ' . $this->condicionalForzado . ' AND ', $sql);
+                $queryCount = $this->manager->createQuery($sqlCount)
                         ->setFirstResult($this->procesador->getRegistrosPorPagina() * ($this->procesador->getPagina() - 1))
                         ->setMaxResults($this->procesador->getRegistrosPorPagina());
-                $resultsCount = new Paginator($query, $fetchJoinCollection = true);
-                $results = $query->getArrayResult();
+                $queryConCampos = $this->manager->createQuery($sqlConCampos)
+                        ->setFirstResult($this->procesador->getRegistrosPorPagina() * ($this->procesador->getPagina() - 1))
+                        ->setMaxResults($this->procesador->getRegistrosPorPagina());
+                $resultsCount = new Paginator($queryCount, $fetchJoinCollection = true);
+                $resultsConCampos = new Paginator($queryConCampos, $fetchJoinCollection = true);
+                $results = $queryConCampos->getArrayResult();
                 $totalItems = $resultsCount->count();
                 $this->procesarPaginado($totalItems);
             } else {
                 $this->errores = array_merge($this->errores, $this->procesador->getErrores());
-                return false;
             }
         }
-        else
-            return false;
+        if (count($this->errores) > 0){
+            $totalItems = 0;
+            $results =  array('error' => $this->errores);
+        }
         $result = new ApiResult();
         $result->setTotalRegistros($totalItems);
         $result->setRegistros($results);
@@ -85,108 +100,93 @@ class QueryBuilder
         $result->setPaginaActual($this->procesador->getPagina());
         return $result;
     }
-    function procesarPaginado($totalRegistros){
+    function procesarPaginado($totalRegistros) {
         $pagina = $this->procesador->getPagina();
         $registrosPorPagina = $this->procesador->getRegistrosPorPagina();
         $numeroPaginas = ceil($totalRegistros / $registrosPorPagina);
-        if($pagina > $numeroPaginas) {
+        if ($pagina > $numeroPaginas) {
             $this->errores[] = "El número de página proporcionado, excede la cantidad de páginas del conjunto de restultados";
-            return false;
         }
         $this->numeroPaginas = $numeroPaginas;
     }
-    function procesarOrden()
-    {
+    function procesarOrden() {
         $orden = '';
-        foreach($this->procesador->getOrden() as $campo => $direccion)
-        {
-            $orden .= $this->nomEntidad.".$campo $direccion, ";
+        foreach ($this->procesador->getOrden() as $campo => $direccion) {
+            $orden .= $this->nomEntidad . ".$campo $direccion, ";
         }
-        if($orden!=''){
-            $orden = ' ORDER BY '.substr($orden,0,-2);
+        if ($orden != '') {
+            $orden = ' ORDER BY ' . substr($orden, 0, -2);
         }
         return $orden;
     }
-    public function setCampos($campos)
-    {
+    public function setCampos($campos) {
         $this->campos = $campos;
         $this->procesador->setCamposSeleccionables($campos);
     }
     private $distinct = true;
-    public function setDistinct($distinct)
-    {
+    public function setDistinct($distinct) {
         $this->distinct = $distinct;
     }
     private $procesador;
     private $condicionalForzado;
-    public function setCondicionalForzado($condicionalForzado)
-    {
+    public function setCondicionalForzado($condicionalForzado) {
         $this->condicionalForzado = $condicionalForzado;
     }
-    function procesarCondicional()
-    {
+    function procesarCondicional() {
         $condicional = '';
-        foreach($this->procesador->getFiltros() as $campo => $valor)
-        {
+        foreach ($this->procesador->getFiltros() as $campo => $valor) {
             $parametros = $this->procesador->getParametros();
-            switch($parametros[$campo]['style'])
-            {
+            switch ($parametros[$campo]['style']) {
                 case 'flat':
                     $condicional .= "$campo = :$campo AND ";
                     break;
                 case 'range':
-                    if(count($valor)==2)
-                        $condicional .= $campo.' BETWEEN :'.$campo.'_min AND :'.$campo.'_max AND ';
+                    if (count($valor) == 2)
+                        $condicional .= $campo . ' BETWEEN :' . $campo . '_min AND :' . $campo . '_max AND ';
                     else
                         $condicional .= "$campo = :$campo AND ";
                     break;
                 case 'list':
-                    if(count($valor)>1) {
+                    if (count($valor) > 1) {
                         $valores = '';
-                        foreach($valor as $valor)
-                            $valores .= $this->connection->quote($valor).', ';
+                        foreach ($valor as $valor)
+                            $valores .= $this->connection->quote($valor) . ', ';
                         $valores = substr($valores, 0, -2);
                         $condicional .= "$campo IN ($valores) AND ";
-                    }else
-                        $condicional .= "$campo = ".$this->connection->quote($valor)." AND ";
+                    } else
+                        $condicional .= "$campo = " . $this->connection->quote($valor) . " AND ";
                     break;
             }
         }
-        foreach($this->condicionales as $campo => $valor)
-        {
-            $condicional .= "$campo = ".$this->connection->quote($valor)." AND ";
+        foreach ($this->condicionales as $campo => $valor) {
+            $condicional .= "$campo = " . $this->connection->quote($valor) . " AND ";
         }
-        if($condicional!='')
-            $condicional = '('.substr($condicional,0,-4).')';
+        if ($condicional != '')
+            $condicional = '(' . substr($condicional, 0, -4) . ')';
         $busqueda = $this->procesador->getBusqueda();
-        if(!is_null($busqueda))
-        {
+        if (!is_null($busqueda)) {
             $consulta = '';
-            foreach($busqueda['campos'] as $campo)
-            {
+            foreach ($busqueda['campos'] as $campo) {
                 $consulta .= "$campo LIKE :q OR ";
             }
-            if($consulta!='')
-            {
+            if ($consulta != '') {
                 $consulta = '(' . substr($consulta, 0, -3) . ')';
                 $condicional .= (($condicional != '') ? ' AND ' : '') . $consulta;
             }
         }
-        if($condicional!='')
+        if ($condicional != '')
             $condicional = "WHERE $condicional";
         return $condicional;
     }
-    function asociarValores(Statement $stmt){
-        foreach($this->procesador->getFiltros() as $campo => $valor)
-        {
+    function asociarValores(Statement $stmt) {
+        foreach ($this->procesador->getFiltros() as $campo => $valor) {
             $parametros = $this->procesador->getParametros();
-            switch($parametros[$campo]['style'])
-            {
+            switch ($parametros[$campo]['style']) {
                 case 'flat':
                     $stmt->bindValue($campo, $valor);
                     break;
                 case 'range':
-                    if(count($valor)==2) {
+                    if (count($valor) == 2) {
                         $stmt->bindValue($campo . '_min', $valor[0]);
                         $stmt->bindValue($campo . '_max', $valor[1]);
                     } else
@@ -194,32 +194,29 @@ class QueryBuilder
                     break;
             }
         }
-        if(!is_null($this->procesador->getBusqueda()))
-            $stmt->bindValue('q', '%'.$this->procesador->getBusqueda()['valor'].'%');
+        if (!is_null($this->procesador->getBusqueda()))
+            $stmt->bindValue('q', '%' . $this->procesador->getBusqueda()['valor'] . '%');
         return $stmt;
     }
-    public function agregarCondicionales($condicionales)
-    {
+    public function agregarCondicionales($condicionales) {
         $parametros = $this->procesador->getFiltros();
-        foreach($condicionales as $condicional)
-        {
-            if(array_key_exists($condicional['campo'],$parametros))
-                $this->errores[] = 'El campo '.$condicional['campo'].', es uno de los parametros del querystring.';
+        foreach ($condicionales as $condicional) {
+            if (array_key_exists($condicional['campo'], $parametros))
+                $this->errores[] = 'El campo ' . $condicional['campo'] . ', es uno de los parametros del querystring.';
             else {
                 if ($this->validarCampo($condicional['campo'], $condicional['valor'], $condicional['validaciones']))
                     $this->condicionales[$condicional['campo']] = $condicional['valor'];
             }
         }
     }
-    function validarCampo($campo, $valor, $validaciones)
-    {
+    function validarCampo($campo, $valor, $validaciones) {
         $validacion = new Collection([
-                $campo => $validaciones
-            ]);
-        $data = [$campo=>$valor];
+            $campo => $validaciones
+        ]);
+        $data = [$campo => $valor];
         $error = $this->validator->validateValue($data, $validacion);
-        if(count($error)>0)
-            $this->errores[] = $error[0]->getPropertyPath().':'.$error[0]->getMessage();
-        return (count($error)==0);
+        if (count($error) > 0)
+            $this->errores[] = $error[0]->getPropertyPath() . ':' . $error[0]->getMessage();
+        return (count($error) == 0);
     }
 }

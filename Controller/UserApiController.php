@@ -22,7 +22,8 @@ class UserApiController extends FOSRestController {
     }
     public function getUsersAction() {
         $camposOrdenables = array('id','username','name','is_active','datetime_last_conection');
-        $data = $this->container->get('user.api.handler')->getAll($camposOrdenables);
+        $camposSeleccionables = array('name', 'username', 'id', 'is_active', 'datetime_last_conection');
+        $data = $this->container->get('user.api.handler')->getAll($camposOrdenables, $camposSeleccionables);
         return $this->container->get('api.respuestas')->Contenido($data->getRegistros(), $data->getTotalRegistros(), $data->getNumeroPaginas(), $data->getPaginaActual() );
     }
     public function postUserAction(Request $request) {

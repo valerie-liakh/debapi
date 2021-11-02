@@ -57,6 +57,7 @@ class ProcesadorQuerystring {
             $this->procesarFiltro($parametro, $valor);
         } else{
             echo "Error";
+            exit();
             $this->errores[] = "El parametro $parametro no puede ser procesado o no existe";
         }    
     }
@@ -99,6 +100,16 @@ class ProcesadorQuerystring {
     public function getOrden() {
         return $this->orden;
     }
+    function procesarSeleccion($campos) {
+        foreach (explode(',', $campos) as $campo){
+            if (in_array($campo, $this->camposSeleccionables)){
+                $this->seleccion[] = $campo;
+            }
+            else{
+                $this->errores[] = "El campo $campo no es seleccionable o no existe";
+            }
+        }
+    }
     public function setUsarGenerales($usarGenerales) {
         $this->usarGenerales = $usarGenerales;
     }
@@ -138,13 +149,6 @@ class ProcesadorQuerystring {
                     $this->errores[] = "$parametro no es un nombre válido de parametro o filtro";
             }
         }
-    }
-    function procesarSeleccion($campos) {
-        foreach (explode(',', $campos) as $campo)
-            if (in_array($campo, $this->camposSeleccionables))
-                $this->seleccion[] = $campo;
-            else
-                $this->errores[] = "El campo $campo no es seleccionable o no existe";
     }
     function procesarFiltro($campo, $valor) {
         switch ($this->camposFiltrables[$campo]['style']) {

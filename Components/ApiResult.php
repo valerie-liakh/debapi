@@ -15,7 +15,7 @@ class ApiResult {
     {
         return $this->totalRegistros;
     }
-    public function setTotalRegistros($totalRegistros)
+    public function setTotalRegistros($totalRegistros = 0)
     {
         $this->totalRegistros = $totalRegistros;
     }
