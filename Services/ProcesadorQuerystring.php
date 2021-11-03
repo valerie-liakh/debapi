@@ -17,6 +17,28 @@ class ProcesadorQuerystring {
     function __construct(RequestStack $request, $validator) {
         $this->request = $request->getCurrentRequest();
         $this->validator = $validator;
+        $this->generales = [
+            'id_paises' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
+            'id_estados_inmueble' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
+            'id_ciudades_inmueble' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
+            'id_urb_inmueble' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
+            'precio' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'area_const' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'num_hab' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'num_hab_serv' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'total_hab' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'num_banios' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'num_banios_serv' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'total_banios' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'num_pto_estaciona' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'num_fotos' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'fecha_ult_mod' => ['style' => 'flat', 'validaciones' => [ new Date()]],
+            'area_terreno' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'id_tipo_inmueble' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'destacado' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'id_inmobiliaria' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
+            'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min' => 2, 'max' => 15])]]
+        ];
     }
     private $camposOrdenables = [];
     public function setCamposOrdenables($camposOrdenables) {
@@ -24,6 +46,7 @@ class ProcesadorQuerystring {
     }
     public function ejecutar() {
         $filtros = $this->camposFiltrables;
+        $this->camposFiltrables = $this->getParametros();
         $parametros = array_merge($this->request->query->all(), $this->parametros);
         foreach ($parametros as $parametro => $valor) {
             $this->procesarParametro($parametro, $valor);
@@ -52,14 +75,12 @@ class ProcesadorQuerystring {
             }
         }
         elseif (array_key_exists($parametro, $this->camposFiltrables)) {
-            echo "Continuar";
-            exit();
             $this->procesarFiltro($parametro, $valor);
-        } else{
+        } else {
             echo "Error";
-            exit();
             $this->errores[] = "El parametro $parametro no puede ser procesado o no existe";
-        }    
+            exit();
+        }
     }
     function procesarOrden($campos) {
         foreach (explode(',', $campos) as $campo) {
@@ -68,7 +89,7 @@ class ProcesadorQuerystring {
                 $this->orden[$campo[0]] = 'ASC';
                 if (count($campo) > 1)
                     $this->orden[$campo[0]] = $campo[1];
-            } else{
+            } else {
                 $this->errores[] = 'El valor ' . $campo[0] . ' no puede ser utilizado para ordenar la consulta';
             }
         }
@@ -101,14 +122,22 @@ class ProcesadorQuerystring {
         return $this->orden;
     }
     function procesarSeleccion($campos) {
-        foreach (explode(',', $campos) as $campo){
-            if (in_array($campo, $this->camposSeleccionables)){
+        foreach (explode(',', $campos) as $campo) {
+            if (in_array($campo, $this->camposSeleccionables)) {
                 $this->seleccion[] = $campo;
-            }
-            else{
+            } else {
                 $this->errores[] = "El campo $campo no es seleccionable o no existe";
             }
         }
+    }
+    public function getParametros() {
+        $parametros = [];
+        if ($this->usarGenerales) {
+            $parametros = array_merge($this->generales, $this->camposFiltrables);
+        } else {
+            $parametros = $this->camposFiltrables;
+        }
+        return $parametros;
     }
     public function setUsarGenerales($usarGenerales) {
         $this->usarGenerales = $usarGenerales;
@@ -153,9 +182,10 @@ class ProcesadorQuerystring {
     function procesarFiltro($campo, $valor) {
         switch ($this->camposFiltrables[$campo]['style']) {
             case 'flat':
-                if ($this->validarCampo($campo, $valor))
+                if ($this->validarCampo($campo, $valor)) {
                     $this->filtros[$campo] = $valor;
-                break;
+                    break;
+                }
             case 'range':
                 $valores = explode(',', $valor);
                 if (count($valores) > 2)
@@ -194,14 +224,15 @@ class ProcesadorQuerystring {
                 'valor' => $valor
             ];
     }
-        function validarCampo($campo, $valor, $clave = '') {
-        if ($clave == '')
+    function validarCampo($campo, $valor, $clave = '') {
+        if ($clave == '') {
             $clave = $campo;
+        }
         $validacion = new Collection([
             $campo => $this->camposFiltrables[$clave]['validaciones']
         ]);
         $data = [$campo => $valor];
-        $error = $this->validator->validateValue($data, $validacion);
+        $error = $this->validator->validate($data, $validacion);
         if (count($error) > 0)
             $this->errores[] = $error[0]->getPropertyPath() . ':' . $error[0]->getMessage();
         return (count($error) == 0);

@@ -25,11 +25,13 @@ class ApiHandler implements ApiHandlerInterface {
     public function get($id) {
         return $this->repository->find($id);
     }
-    public function getAll($camposOrdenables, $camposSeleccionables) {
+    public function getAll($camposOrdenables, $camposSeleccionables, $camposConsultables, $camposFiltrables) {
         $procesador = $this->queryConstructor->getProcesador();
         $this->queryConstructor->setEntidad($this->entityClass);
         $procesador->setCamposOrdenables($camposOrdenables);
         $procesador->setCamposSeleccionables($camposSeleccionables);
+        $procesador->setCamposConsultables($camposConsultables);
+        $procesador->setCamposFiltrables($camposFiltrables);
         $resultado = $this->queryConstructor->crearQuery();
         if(!$resultado)
             return $this->respuesta->EjecucionNoPermitida($this->queryConstructor->getErrores());

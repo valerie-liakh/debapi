@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Form\FormTypeInterface;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Lynx\ApiBundle\Form\UserType;
+use Symfony\Component\Validator\Constraints\Length;
 use Lynx\ApiBundle\Exception\InvalidFormException;
 class UserApiController extends FOSRestController {
     public function getUserAction($id) {
@@ -23,7 +24,11 @@ class UserApiController extends FOSRestController {
     public function getUsersAction() {
         $camposOrdenables = array('id','username','name','is_active','datetime_last_conection');
         $camposSeleccionables = array('name', 'username', 'id', 'is_active', 'datetime_last_conection');
-        $data = $this->container->get('user.api.handler')->getAll($camposOrdenables, $camposSeleccionables);
+        $camposConsultables = array('name', 'username', 'id', 'is_active');
+        $camposFiltrables = ([
+            'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min'=>3, 'max'=>'50']) ]],
+        ]);
+        $data = $this->container->get('user.api.handler')->getAll($camposOrdenables, $camposSeleccionables, $camposConsultables, $camposFiltrables);
         return $this->container->get('api.respuestas')->Contenido($data->getRegistros(), $data->getTotalRegistros(), $data->getNumeroPaginas(), $data->getPaginaActual() );
     }
     public function postUserAction(Request $request) {

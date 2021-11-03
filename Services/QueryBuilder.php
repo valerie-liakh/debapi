@@ -138,7 +138,7 @@ class QueryBuilder {
             $parametros = $this->procesador->getParametros();
             switch ($parametros[$campo]['style']) {
                 case 'flat':
-                    $condicional .= "$campo = :$campo AND ";
+                    $condicional .= "ent.$campo = :$campo AND ";
                     break;
                 case 'range':
                     if (count($valor) == 2)
@@ -158,6 +158,8 @@ class QueryBuilder {
                     break;
             }
         }
+        print_r($this->condicionales);
+        exit();
         foreach ($this->condicionales as $campo => $valor) {
             $condicional .= "$campo = " . $this->connection->quote($valor) . " AND ";
         }
