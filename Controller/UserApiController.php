@@ -27,6 +27,7 @@ class UserApiController extends FOSRestController {
         $camposConsultables = array('name', 'username', 'id');
         $camposFiltrables = ([
             'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min'=>3, 'max'=>'50']) ]],
+            'username' => ['style' => 'flat', 'validaciones' => [ new Length(['min'=>3, 'max'=>'50']) ]],
         ]);
         $data = $this->container->get('user.api.handler')->getAll($camposOrdenables, $camposSeleccionables, $camposConsultables, $camposFiltrables);
         return $this->container->get('api.respuestas')->Contenido($data->getRegistros(), $data->getTotalRegistros(), $data->getNumeroPaginas(), $data->getPaginaActual() );

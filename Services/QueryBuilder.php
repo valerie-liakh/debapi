@@ -49,15 +49,10 @@ class QueryBuilder {
                 }
                 $engine = new StringTemplate\Engine(':', '');
                 $condicional = $this->procesarCondicional();
-                if ($this->procesador->GetBusqueda()){
-                    $busqueda = $this->procesador->GetBusqueda();
-                    $condicional = str_replace(":q", $busqueda['valor'] , $condicional);
-                }elseif($this->procesador->GetFiltros()){
-                    print_r($this->procesador->GetFiltros());
-                    exit();
-                }else{
-                    echo "aqui";
-                    exit();
+                if ($this->procesador->getBusqueda()) {
+                    $busqueda = $this->procesador->getBusqueda();
+                    $condicional = str_replace(":q", $busqueda['valor'], $condicional);
+                }else {
                 }
                 $orden = $this->procesarOrden();
                 $sqlCount = $engine->render(
@@ -71,7 +66,7 @@ class QueryBuilder {
                     'limites' => ''
                         ]
                 );
-                   $sqlConCampos = $engine->render(
+                $sqlConCampos = $engine->render(
                         $this->template, [
                     'distinct' => 'DISTINCT',
                     'campos' => $campos,
@@ -94,14 +89,18 @@ class QueryBuilder {
                 $resultsConCampos = new Paginator($queryConCampos, $fetchJoinCollection = true);
                 $results = $queryConCampos->getArrayResult();
                 $totalItems = $resultsCount->count();
-                $this->procesarPaginado($totalItems);
+                if ($totalItems > 0) {     
+                    $this->procesarPaginado($totalItems);
+                } else {
+                    $this->errores[] = "No se encontraron resultados";
+                }
             } else {
                 $this->errores = array_merge($this->errores, $this->procesador->getErrores());
             }
         }
-        if (count($this->errores) > 0){
+        if (count($this->errores) > 0) {
             $totalItems = 0;
-            $results =  array('error' => $this->errores);
+            $results = array('error' => $this->errores);
         }
         $result = new ApiResult();
         $result->setTotalRegistros($totalItems);
@@ -145,10 +144,11 @@ class QueryBuilder {
     function procesarCondicional() {
         $condicional = '';
         foreach ($this->procesador->getFiltros() as $campo => $valor) {
+            $filtros = $this->procesador->getFiltros();
             $parametros = $this->procesador->getParametros();
             switch ($parametros[$campo]['style']) {
                 case 'flat':
-                    $condicional .= "ent.$campo = :$campo AND ";
+                    $condicional .= "ent.$campo = '$filtros[$campo]' AND ";
                     break;
                 case 'range':
                     if (count($valor) == 2)

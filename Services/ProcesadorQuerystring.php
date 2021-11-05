@@ -22,7 +22,8 @@ class ProcesadorQuerystring {
             'num_pto_estaciona' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
             'num_fotos' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
             'fecha_ult_mod' => ['style' => 'flat', 'validaciones' => [ new Date()]],
-            'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min' => 2, 'max' => 15])]]
+            'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min' => 2, 'max' => 15])]],
+            'username' => ['style' => 'flat', 'validaciones' => [ new Length(['min' => 2, 'max' => 15])]]
         ];
     }
     private $camposOrdenables = [];
@@ -152,17 +153,12 @@ class ProcesadorQuerystring {
     public function getSeleccion() {
         return $this->seleccion;
     }
-    public function excluirFiltrosBase($parametros) {
-        if (is_array($parametros)) {
-            foreach ($parametros as $parametro) {
-                if (array_key_exists($parametro, $this->generales))
-                    unset($this->generales[$parametro]);
-                elseif (in_array($parametro, $this->excepciones))
-                    $this->excepciones = array_diff($this->excepciones, [$parametro]);
-                else
-                    $this->errores[] = "$parametro no es un nombre válido de parametro o filtro";
-            }
-        }
+    function procesarBusqueda($valor) {
+        if (count($this->camposConsultables) > 0)
+            $this->busqueda = [
+                'campos' => $this->camposConsultables,
+                'valor' => $valor
+            ];
     }
     function procesarFiltro($campo, $valor) {
         switch ($this->camposFiltrables[$campo]['style']) {
@@ -202,13 +198,6 @@ class ProcesadorQuerystring {
                 break;
         }
     }
-    function procesarBusqueda($valor) {
-        if (count($this->camposConsultables) > 0)
-            $this->busqueda = [
-                'campos' => $this->camposConsultables,
-                'valor' => $valor
-            ];
-    }
     function validarCampo($campo, $valor, $clave = '') {
         if ($clave == '') {
             $clave = $campo;
@@ -221,5 +210,17 @@ class ProcesadorQuerystring {
         if (count($error) > 0)
             $this->errores[] = $error[0]->getPropertyPath() . ':' . $error[0]->getMessage();
         return (count($error) == 0);
+    }
+    public function excluirFiltrosBase($parametros) {
+        if (is_array($parametros)) {
+            foreach ($parametros as $parametro) {
+                if (array_key_exists($parametro, $this->generales))
+                    unset($this->generales[$parametro]);
+                elseif (in_array($parametro, $this->excepciones))
+                    $this->excepciones = array_diff($this->excepciones, [$parametro]);
+                else
+                    $this->errores[] = "$parametro no es un nombre válido de parametro o filtro";
+            }
+        }
     }
 }
