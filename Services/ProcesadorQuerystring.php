@@ -19,24 +19,9 @@ class ProcesadorQuerystring {
         $this->validator = $validator;
         $this->generales = [
             'id_paises' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
-            'id_estados_inmueble' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
-            'id_ciudades_inmueble' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
-            'id_urb_inmueble' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
-            'precio' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'area_const' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'num_hab' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'num_hab_serv' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'total_hab' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'num_banios' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'num_banios_serv' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'total_banios' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
             'num_pto_estaciona' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
             'num_fotos' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
             'fecha_ult_mod' => ['style' => 'flat', 'validaciones' => [ new Date()]],
-            'area_terreno' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'id_tipo_inmueble' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'destacado' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'id_inmobiliaria' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
             'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min' => 2, 'max' => 15])]]
         ];
     }

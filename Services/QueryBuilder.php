@@ -49,6 +49,16 @@ class QueryBuilder {
                 }
                 $engine = new StringTemplate\Engine(':', '');
                 $condicional = $this->procesarCondicional();
+                if ($this->procesador->GetBusqueda()){
+                    $busqueda = $this->procesador->GetBusqueda();
+                    $condicional = str_replace(":q", $busqueda['valor'] , $condicional);
+                }elseif($this->procesador->GetFiltros()){
+                    print_r($this->procesador->GetFiltros());
+                    exit();
+                }else{
+                    echo "aqui";
+                    exit();
+                }
                 $orden = $this->procesarOrden();
                 $sqlCount = $engine->render(
                         $this->template, [
@@ -158,8 +168,6 @@ class QueryBuilder {
                     break;
             }
         }
-        print_r($this->condicionales);
-        exit();
         foreach ($this->condicionales as $campo => $valor) {
             $condicional .= "$campo = " . $this->connection->quote($valor) . " AND ";
         }
@@ -169,7 +177,7 @@ class QueryBuilder {
         if (!is_null($busqueda)) {
             $consulta = '';
             foreach ($busqueda['campos'] as $campo) {
-                $consulta .= "$campo LIKE :q OR ";
+                $consulta .= "ent.$campo LIKE '%:q%' OR ";
             }
             if ($consulta != '') {
                 $consulta = '(' . substr($consulta, 0, -3) . ')';
