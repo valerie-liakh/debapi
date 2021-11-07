@@ -52,7 +52,6 @@ class QueryBuilder {
                 if ($this->procesador->getBusqueda()) {
                     $busqueda = $this->procesador->getBusqueda();
                     $condicional = str_replace(":q", $busqueda['valor'], $condicional);
-                }else {
                 }
                 $orden = $this->procesarOrden();
                 $sqlCount = $engine->render(
@@ -162,9 +161,9 @@ class QueryBuilder {
                         foreach ($valor as $valor)
                             $valores .= $this->connection->quote($valor) . ', ';
                         $valores = substr($valores, 0, -2);
-                        $condicional .= "$campo IN ($valores) AND ";
+                        $condicional .= "ent.$campo IN ($valores) AND ";
                     } else
-                        $condicional .= "$campo = " . $this->connection->quote($valor) . " AND ";
+                        $condicional .= "ent.$campo = " . $this->connection->quote($valor) . " AND ";
                     break;
             }
         }

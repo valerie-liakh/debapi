@@ -61,7 +61,7 @@ class ProcesadorQuerystring {
             }
         }
         elseif (array_key_exists($parametro, $this->camposFiltrables)) {
-            $this->procesarFiltro($parametro, $valor);
+           $this->procesarFiltro($parametro, $valor);
         } else {
             echo "Error";
             $this->errores[] = "El parametro $parametro no puede ser procesado o no existe";
@@ -188,14 +188,18 @@ class ProcesadorQuerystring {
                 $valores = explode(',', $valor);
                 if (count($valores) > 1) {
                     $errores = 0;
-                    foreach ($valores as $index => $valor)
+                    foreach ($valores as $index => $valor) {
                         $errores = ($this->validarCampo($campo . '_' . $index, $valor, $campo)) ? $errores : $errores++;
-                    if ($errores == 0)
+                    }
+                    if ($errores == 0) {
                         $this->filtros[$campo] = $valores;
-                } else
-                if ($this->validarCampo($campo, $valor))
-                    $this->filtros[$campo] = $valor;
-                break;
+                    }
+                } else {
+                    if ($this->validarCampo($campo, $valor)){
+                        $this->filtros[$campo] = $valor;                      
+                    }
+                    break;
+                }
         }
     }
     function validarCampo($campo, $valor, $clave = '') {
