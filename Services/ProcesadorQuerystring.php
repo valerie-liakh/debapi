@@ -173,8 +173,8 @@ class ProcesadorQuerystring {
                     $this->errores[] = "El campo $campo contiene mas valores de los permitidos";
                 if (count($valores) == 2) {
                     $errores = 0;
-                    $errores = ($this->validarCampo($campo . '_min', $valores[0], $campo)) ? $errores : $errores++;
-                    $errores = ($this->validarCampo($campo . '_max', $valores[1], $campo)) ? $errores : $errores++;
+                    $errores = ($this->validarCampo('ent.'.$campo . '_min', $valores[0], $campo)) ? $errores : $errores++;
+                    $errores = ($this->validarCampo('ent.'.$campo . '_max', $valores[1], $campo)) ? $errores : $errores++;
                     if ($errores == 0)
                         if ($valores[1] < $valores[0])
                             $this->errores[] = "El rango del campo $campo es inválido";

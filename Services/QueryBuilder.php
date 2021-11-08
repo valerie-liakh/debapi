@@ -151,9 +151,9 @@ class QueryBuilder {
                     break;
                 case 'range':
                     if (count($valor) == 2)
-                        $condicional .= $campo . ' BETWEEN :' . $campo . '_min AND :' . $campo . '_max AND ';
+                        $condicional .= 'ent.'.$campo . " BETWEEN '" . $filtros[$campo][0] . "' AND '" . $filtros[$campo][1] . "' AND ";
                     else
-                        $condicional .= "$campo = :$campo AND ";
+                        $condicional .= "ent.$campo = :$campo AND ";
                     break;
                 case 'list':
                     if (count($valor) > 1) {

@@ -13,6 +13,7 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Lynx\ApiBundle\Form\UserType;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\GreaterThan;
+use Symfony\Component\Validator\Constraints\Date;
 use Lynx\ApiBundle\Exception\InvalidFormException;
 class UserApiController extends FOSRestController {
     public function getUserAction($id) {
@@ -30,6 +31,7 @@ class UserApiController extends FOSRestController {
             'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min'=>3, 'max'=>'50']) ]],
             'username' => ['style' => 'flat', 'validaciones' => [ new Length(['min'=>3, 'max'=>'50']) ]],
             'id' => ['style' => 'list', 'validaciones' =>[new GreaterThan(['value'=>0]) ]],
+            'datetimeLastConection' => ['style' => 'range', 'validaciones' => [ new Date(), new GreaterThan(['value'=>0])]],
         ]);
         $data = $this->container->get('user.api.handler')->getAll($camposOrdenables, $camposSeleccionables, $camposConsultables, $camposFiltrables);
         return $this->container->get('api.respuestas')->Contenido($data->getRegistros(), $data->getTotalRegistros(), $data->getNumeroPaginas(), $data->getPaginaActual() );
