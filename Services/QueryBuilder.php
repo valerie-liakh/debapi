@@ -76,8 +76,10 @@ class QueryBuilder {
                     'limites' => ''
                         ]
                 );
-                if ($this->condicionalForzado != null)
-                    $sqlCount = str_replace('WHERE', 'WHERE ' . $this->condicionalForzado . ' AND ', $sql);
+                if ($this->condicionalForzado != null){
+                    $sqlCount = str_replace('WHERE', 'WHERE ' . $this->condicionalForzado . ' AND ', $sqlCount);
+                    $sqlConCampos = str_replace('WHERE', 'WHERE ' . $this->condicionalForzado . ' AND ', $sqlConCampos);
+                }
                 $queryCount = $this->manager->createQuery($sqlCount)
                         ->setFirstResult($this->procesador->getRegistrosPorPagina() * ($this->procesador->getPagina() - 1))
                         ->setMaxResults($this->procesador->getRegistrosPorPagina());
@@ -130,10 +132,6 @@ class QueryBuilder {
     public function setCampos($campos) {
         $this->campos = $campos;
         $this->procesador->setCamposSeleccionables($campos);
-    }
-    private $distinct = true;
-    public function setDistinct($distinct) {
-        $this->distinct = $distinct;
     }
     private $procesador;
     private $condicionalForzado;

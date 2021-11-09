@@ -11,20 +11,12 @@ class ProcesadorQuerystring {
     private $request;
     private $validator;
     private $generales = [];
-    private $excepciones = ['sort', 'q', 'fields', 'contarInmuebles', 'page', 'per_page', '_format'];
+    private $excepciones = ['sort', 'q', 'fields', 'page', 'per_page'];
     private $registroPorPaginaPermitidos = [1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
     private $usarGenerales = true;
     function __construct(RequestStack $request, $validator) {
         $this->request = $request->getCurrentRequest();
         $this->validator = $validator;
-        $this->generales = [
-            'id_paises' => [ 'style' => 'list', 'validaciones' => [ new NotBlank(), new GreaterThan(['value' => 0])]],
-            'num_pto_estaciona' => ['style' => 'range', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'num_fotos' => ['style' => 'flat', 'validaciones' => [ new GreaterThan(['value' => 0])]],
-            'fecha_ult_mod' => ['style' => 'flat', 'validaciones' => [ new Date()]],
-            'name' => ['style' => 'flat', 'validaciones' => [ new Length(['min' => 2, 'max' => 15])]],
-            'username' => ['style' => 'flat', 'validaciones' => [ new Length(['min' => 2, 'max' => 15])]]
-        ];
     }
     private $camposOrdenables = [];
     public function setCamposOrdenables($camposOrdenables) {
@@ -214,17 +206,5 @@ class ProcesadorQuerystring {
         if (count($error) > 0)
             $this->errores[] = $error[0]->getPropertyPath() . ':' . $error[0]->getMessage();
         return (count($error) == 0);
-    }
-    public function excluirFiltrosBase($parametros) {
-        if (is_array($parametros)) {
-            foreach ($parametros as $parametro) {
-                if (array_key_exists($parametro, $this->generales))
-                    unset($this->generales[$parametro]);
-                elseif (in_array($parametro, $this->excepciones))
-                    $this->excepciones = array_diff($this->excepciones, [$parametro]);
-                else
-                    $this->errores[] = "$parametro no es un nombre válido de parametro o filtro";
-            }
-        }
     }
 }

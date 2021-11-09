@@ -32,6 +32,7 @@ class ApiHandler implements ApiHandlerInterface {
         $procesador->setCamposSeleccionables($camposSeleccionables);
         $procesador->setCamposConsultables($camposConsultables);
         $procesador->setCamposFiltrables($camposFiltrables);
+        $this->queryConstructor->setCondicionalForzado('ent.eliminado = 0');
         $resultado = $this->queryConstructor->crearQuery();
         if(!$resultado)
             return $this->respuesta->EjecucionNoPermitida($this->queryConstructor->getErrores());
