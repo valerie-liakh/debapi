@@ -12,10 +12,7 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
 {
     public function createToken(Request $request, $providerKey)
     {
-        $apiKey = $request->query->get('apikey');
-        if (!$apiKey) {
-            throw new BadCredentialsException();
-        }
+         $apiKey = $request->headers->get('apikey');
         return new PreAuthenticatedToken(
             'anon.',
             $apiKey,
