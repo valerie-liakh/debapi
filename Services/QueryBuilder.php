@@ -33,6 +33,9 @@ class QueryBuilder {
     public function setEntidad($entidad) {
         $this->entidad = $entidad;
     }
+    public function getEntidad() {
+        return $this->entidad;
+    }
     public function crearQuery() {
         $stmt = "";
         if (count($this->errores) == 0) {
@@ -119,6 +122,9 @@ class QueryBuilder {
         }
         $this->numeroPaginas = $numeroPaginas;
     }
+    public function getNumeroPaginas() {
+        return $this->numeroPaginas;
+    }
     function procesarOrden() {
         $orden = '';
         foreach ($this->procesador->getOrden() as $campo => $direccion) {
@@ -137,6 +143,9 @@ class QueryBuilder {
     private $condicionalForzado;
     public function setCondicionalForzado($condicionalForzado) {
         $this->condicionalForzado = $condicionalForzado;
+    }
+    public function getCondicionalForzado() {
+        return $this->condicionalForzado;
     }
     function procesarCondicional() {
         $condicional = '';
