@@ -1,9 +1,9 @@
 <?php
 namespace Lynx\ApiBundle\Handler;
-use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\Form\FormTypeInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Lynx\ApiBundle\Exception\InvalidFormException;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ApiHandler implements ApiHandlerInterface {
     private $om;
@@ -38,6 +38,24 @@ class ApiHandler implements ApiHandlerInterface {
             return $this->respuesta->EjecucionNoPermitida($this->queryConstructor->getErrores());
         if($resultado->getTotalRegistros()==0 && count($this->queryConstructor->getErrores())==0 )
           throw new NotFoundHttpException('Registros no encontrados', 404);
+        return $resultado;
+    }
+    public function getAllMultiEntities($campos='',$entidadesRelacionadas='',$condicion='',$vars) {
+        $procesador = $this->queryConstructor->getProcesador();
+        $procesador->setCamposSeleccionables($vars[0]);
+        $procesador->setCamposOrdenables($vars[1]);
+        $procesador->setCamposConsultables($vars[2]);
+        $procesador->setCamposFiltrables($vars[3]);
+        $this->queryConstructor->setEntidad($this->entityClass);
+        $this->queryConstructor->setCondicionalForzado('ent.eliminado = 0');
+        $this->queryConstructor->setCondicionales($condicion);
+        $resultado = $this->queryConstructor->crearQueryEntidades($campos,$entidadesRelacionadas);
+        if(!$resultado) {
+            return $this->respuesta->EjecucionNoPermitida($this->queryConstructor->getErrores());
+        }
+        if($resultado->getTotalRegistros()==0 && count($this->queryConstructor->getErrores())==0) {
+            throw new NotFoundHttpException('Registros no encontrados', 404);
+        }
         return $resultado;
     }
     public function post(array $parameters) {

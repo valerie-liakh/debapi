@@ -1,12 +1,12 @@
 <?php
 namespace Lynx\ApiBundle\Services;
 use Doctrine\Common\Persistence\ObjectManager;
-use StringTemplate;
-use Doctrine\ORM\Tools\Pagination\Paginator;
-use Lynx\ApiBundle\Components\ApiResult;
-use Symfony\Component\Validator\Constraints\Collection;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\Statement;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Lynx\ApiBundle\Components\ApiResult;
+use StringTemplate;
+use Symfony\Component\Validator\Constraints\Collection;
 class QueryBuilder {
     private $connection;
     private $template = "SELECT :distinct :campos FROM :tabla :condicionales :agrupacion :orden :limites";
@@ -234,5 +234,69 @@ class QueryBuilder {
         if (count($error) > 0)
             $this->errores[] = $error[0]->getPropertyPath() . ':' . $error[0]->getMessage();
         return (count($error) == 0);
+    }
+    private $condicionEntidades = "";
+    public function setCondicionales($condicionEntidades) {
+        $this->condicionEntidades = $condicionEntidades;
+    }
+    public function crearQueryEntidades($campos, $entidades) {
+        if (count($this->errores) == 0) {
+            if ($this->procesador->ejecutar()) {
+                $condicional = $this->procesarCondicional();
+                if ($this->procesador->getBusqueda()) {
+                    $busqueda = $this->procesador->getBusqueda();
+                    $condicional = str_replace(":q", $busqueda['valor'], $condicional);
+                }
+                $cond = false;
+                $this->condicionEntidades;
+                if ($condicional == '' && $this->condicionEntidades != '') {
+                    $condicional = " WHERE " . $this->condicionEntidades;
+                    $cond = true;
+                }
+                if ($campos == '') {
+                    $campos = $this->nomEntidad;
+                }
+                if ($entidades == '') {
+                    $entidades = $this->getEntidad();
+                }
+                $orden = $this->procesarOrden();
+                $agrupacion = '';
+                $engine = new StringTemplate\Engine(':', '');
+                $sqlStmt = $engine->render($this->template, ['distinct' => 'DISTINCT', 'campos' => $campos, 'tabla' => $entidades, 'condicionales' => $condicional, 'agrupacion' => $agrupacion, 'orden' => $orden, 'limites' => ''] );
+                $sqlStmtEntity = $engine->render($this->template, ['distinct' => 'DISTINCT', 'campos' => 'ent', 'tabla' => $entidades, 'condicionales' => $condicional, 'agrupacion' => $agrupacion, 'orden' => $orden, 'limites' => ''] );
+                if ($this->getCondicionalForzado() != null) {
+                    $sqlStmt = str_replace('WHERE', 'WHERE ' . $this->getCondicionalForzado() . ' AND ', $sqlStmt);
+                    $sqlStmtEntity = str_replace('WHERE', 'WHERE ' . $this->getCondicionalForzado() . ' AND ', $sqlStmtEntity);
+                }
+                if (!$cond && $this->condicionEntidades != '') {
+                    $sqlStmt = str_replace('WHERE', 'WHERE ' . $this->condicionEntidades . ' AND ', $sqlStmt);
+                    $sqlStmtEntity = str_replace('WHERE', 'WHERE ' . $this->condicionEntidades . ' AND ', $sqlStmtEntity);
+                }
+                $query = $this->manager->createQuery($sqlStmt)
+                        ->setFirstResult($this->procesador->getRegistrosPorPagina() * ($this->procesador->getPagina() - 1))
+                        ->setMaxResults($this->procesador->getRegistrosPorPagina());
+                $queryEntity = $this->manager->createQuery($sqlStmtEntity)->setFirstResult($this->procesador->getRegistrosPorPagina() * ($this->procesador->getPagina() - 1))->setMaxResults($this->procesador->getRegistrosPorPagina());
+                $results = $query->getArrayResult();
+                $resultsCount = new Paginator($queryEntity, $fetchJoinCollection = true);
+                $totalItems = $resultsCount->count();
+                if ($totalItems > 0) {     
+                    $this->procesarPaginado($totalItems);
+                } else {
+                    $this->errores[] = "No se encontraron resultados";
+                }
+            } else {
+                $this->errores = array_merge($this->errores, $this->procesador->getErrores());
+            }
+        }
+        if (count($this->errores) > 0) {
+            $totalItems = 0;
+            $results = array('error' => $this->errores);
+        }
+        $result = new ApiResult();
+        $result->setNumeroPaginas($this->getNumeroPaginas());
+        $result->setPaginaActual($this->procesador->getPagina());
+        $result->setRegistros($results);
+        $result->setTotalRegistros($totalItems);
+        return $result;
     }
 }
