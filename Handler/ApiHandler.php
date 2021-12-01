@@ -62,6 +62,10 @@ class ApiHandler implements ApiHandlerInterface {
         $page = new $this->entityClass();
         return $this->processForm($page, $parameters, 'POST');
     }
+    public function patch($id, array $parameters) {
+        $entity = $this->repository->find($id);
+        return $this->processForm($entity, $parameters, 'PATCH');
+    }
     private function processForm($page, array $parameters, $method = "PUT")
     {   
         $text = new $this->typeClass;
