@@ -207,4 +207,8 @@ class ProcesadorQuerystring {
             $this->errores[] = $error[0]->getPropertyPath() . ':' . $error[0]->getMessage();
         return (count($error) == 0);
     }
+    public function setPagina_NRegistros() {
+        $this->pagina = 1;
+        $this->registrosPorPagina = 1;
+    }
 }

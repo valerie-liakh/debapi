@@ -40,7 +40,7 @@ class ApiHandler implements ApiHandlerInterface {
           throw new NotFoundHttpException('Registros no encontrados', 404);
         return $resultado;
     }
-    public function getAllMultiEntities($campos='',$entidadesRelacionadas='',$condicion='',$vars) {
+    public function getAllMultiEntities($campos='',$entidadesRelacionadas='',$condicion='',$vars, $noPaginar = false) {
         $procesador = $this->queryConstructor->getProcesador();
         $procesador->setCamposSeleccionables($vars[0]);
         $procesador->setCamposOrdenables($vars[1]);
@@ -49,7 +49,7 @@ class ApiHandler implements ApiHandlerInterface {
         $this->queryConstructor->setEntidad($this->entityClass);
         $this->queryConstructor->setCondicionalForzado('ent.eliminado = 0');
         $this->queryConstructor->setCondicionales($condicion);
-        $resultado = $this->queryConstructor->crearQueryEntidades($campos,$entidadesRelacionadas);
+        $resultado = $this->queryConstructor->crearQueryEntidades($campos,$entidadesRelacionadas, $noPaginar);
         if(!$resultado) {
             return $this->respuesta->EjecucionNoPermitida($this->queryConstructor->getErrores());
         }

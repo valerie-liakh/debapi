@@ -239,7 +239,7 @@ class QueryBuilder {
     public function setCondicionales($condicionEntidades) {
         $this->condicionEntidades = $condicionEntidades;
     }
-    public function crearQueryEntidades($campos, $entidades) {
+    public function crearQueryEntidades($campos, $entidades, $noPaginar = false) {
         if (count($this->errores) == 0) {
             if ($this->procesador->ejecutar()) {
                 $condicional = $this->procesarCondicional();
@@ -271,6 +271,9 @@ class QueryBuilder {
                 if (!$cond && $this->condicionEntidades != '') {
                     $sqlStmt = str_replace('WHERE', 'WHERE ' . $this->condicionEntidades . ' AND ', $sqlStmt);
                     $sqlStmtEntity = str_replace('WHERE', 'WHERE ' . $this->condicionEntidades . ' AND ', $sqlStmtEntity);
+                }
+                if ($noPaginar) {
+                    $this->procesador->setPagina_NRegistros();
                 }
                 $query = $this->manager->createQuery($sqlStmt)
                         ->setFirstResult($this->procesador->getRegistrosPorPagina() * ($this->procesador->getPagina() - 1))
