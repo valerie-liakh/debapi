@@ -128,6 +128,10 @@ class ProcesadorQuerystring {
     public function setCamposFiltrables($camposFiltrables) {
         $this->camposFiltrables = $camposFiltrables;
     }
+    private $stringAgrupables = '';
+    public function setStringAgrupables($stringAgrupables) {
+        $this->stringAgrupables = $stringAgrupables;
+    }
     private $camposConsultables = [];
     public function setCamposConsultables($camposConsultables) {
         $this->camposConsultables = $camposConsultables;
@@ -142,6 +146,9 @@ class ProcesadorQuerystring {
     }
     private $orden = [];
     private $seleccion = [];
+    public function getStringAgrupables() {
+        return $this->stringAgrupables;
+    }
     public function getSeleccion() {
         return $this->seleccion;
     }

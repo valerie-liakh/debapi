@@ -11,6 +11,7 @@ class QueryBuilder {
     private $connection;
     private $template = "SELECT :distinct :campos FROM :tabla :condicionales :agrupacion :orden :limites";
     private $condicionales = [];
+    private $agrupacion = [];
     private $validator;
     private $numeroPaginas = 0;
     private $nomEntidad = 'ent';
@@ -260,7 +261,11 @@ class QueryBuilder {
                     $entidades = $this->getEntidad();
                 }
                 $orden = $this->procesarOrden();
-                $agrupacion = '';
+                if($this->procesador->getStringAgrupables()){
+                    $agrupacion = $this->procesador->getStringAgrupables();                
+                }else{
+                    $agrupacion = '';  
+                }
                 $engine = new StringTemplate\Engine(':', '');
                 $sqlStmt = $engine->render($this->template, ['distinct' => 'DISTINCT', 'campos' => $campos, 'tabla' => $entidades, 'condicionales' => $condicional, 'agrupacion' => $agrupacion, 'orden' => $orden, 'limites' => ''] );
                 $sqlStmtEntity = $engine->render($this->template, ['distinct' => 'DISTINCT', 'campos' => 'ent', 'tabla' => $entidades, 'condicionales' => $condicional, 'agrupacion' => $agrupacion, 'orden' => $orden, 'limites' => ''] );

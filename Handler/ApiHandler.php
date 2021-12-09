@@ -46,6 +46,7 @@ class ApiHandler implements ApiHandlerInterface {
         $procesador->setCamposOrdenables($vars[1]);
         $procesador->setCamposConsultables($vars[2]);
         $procesador->setCamposFiltrables($vars[3]);
+        $procesador->setStringAgrupables($vars[4]);
         $this->queryConstructor->setEntidad($this->entityClass);
         $this->queryConstructor->setCondicionalForzado('ent.eliminado = 0');
         $this->queryConstructor->setCondicionales($condicion);
