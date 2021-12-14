@@ -1,7 +1,11 @@
 <?php
-use Symfony\Component\HttpFoundation\JsonResponse;
 namespace Lynx\ApiBundle\Services;
+use Symfony\Component\HttpFoundation\JsonResponse;
 class RespuestasCabecera {
+    public function RecursoNoEncontrado($info='Parametros no encontrados',$message='No se enviaron los parámetros para esta operación', $code=404 )
+    {
+        return new JsonResponse([$info, $message], $code);
+    }
     public function EjecucionNoPermitida($errores)
     {
         return array('error' => $errores,'cod' => 405);
