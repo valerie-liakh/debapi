@@ -13,7 +13,7 @@
         "nelmio/cors-bundle": "^1.4",
         "nelmio/api-doc-bundle": "^2.11",
         "friendsofsymfony/rest-bundle": "^1.7",
-        "symfony/framework-bundle": "~2.3|~3.0|~4.0",
+        "symfony/framework-bundle": "~2.3|~3.0",
         "nicmart/string-template": "~0.1"
     },
     "autoload" : {
